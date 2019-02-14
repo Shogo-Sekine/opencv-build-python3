@@ -47,8 +47,8 @@ cp -rf build/numpy/lib/python3.6/site-packages/numpy lambda-package
 cp build/opencv/build/lib/python3/cv2.cpython-36m-x86_64-linux-gnu.so lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
 cp -L build/opencv/build/lib/*.so.4.0 lambda-package/cv2
 strip --strip-all lambda-package/cv2/*
-echo '$ORIGIN'
-chrpath -r '$ORIGIN' lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
+#echo '$ORIGIN'
+#chrpath -r '$ORIGIN' lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
 touch lambda-package/cv2/__init__.py
 
 # Copy template function and zip package
