@@ -33,6 +33,10 @@ cp -rf build/numpy/lib/python3.6/site-packages/numpy lambda-package
 		-D BUILD_TESTS=OFF						\
 		-D BUILD_PERF_TESTS=OFF					\
 		-D BUILD_opencv_highgui=OFF				\
+		-D BUILD_opencv_python3=ON \
+		-D BUILD_opencv_video=OFF \
+		-D BUILD_opencv_videoio=OFF \
+		-D BUILD_opencv_videostab=OFF \
 		-D PYTHON3_NUMPY_INCLUDE_DIRS="$NUMPY"	\
 		-D PYTHON3_EXECUTABLE=/root/.pyenv/versions/3.6.5/bin/python3.6 \
 		-D PYTHON3_INCLUDE_DIR=/root/.pyenv/versions/3.6.5/include/python3.6m \
@@ -40,10 +44,11 @@ cp -rf build/numpy/lib/python3.6/site-packages/numpy lambda-package
 		..
 	make -j`cat /proc/cpuinfo | grep MHz | wc -l`
 )
-cp build/opencv/build/lib/python3/cv2.cpython-36m-x86_64-linux-gnu.so lambda-package/cv2/__init__.so
+cp build/opencv/build/lib/python3/cv2.cpython-36m-x86_64-linux-gnu.so lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
 cp -L build/opencv/build/lib/*.so.4.0 lambda-package/cv2
 strip --strip-all lambda-package/cv2/*
-chrpath -r '$ORIGIN' lambda-package/cv2/__init__.so
+echo '$ORIGIN'
+chrpath -r '$ORIGIN' lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
 touch lambda-package/cv2/__init__.py
 
 # Copy template function and zip package
