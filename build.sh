@@ -1,19 +1,21 @@
 #!/bin/bash
-# Before run commands below, you must build python3 environment via pyenv
 # Setting up build env
 sudo yum update -y
-sudo yum install -y git cmake gcc-c++ gcc chrpath
-mkdir -p lambda-package/cv2 build/numpy
+sudo yum install -y git cmake gcc-c++ gcc chrpath python3-devel
+mkdir -p build/cv2 build/numpy
+mkdir -p package
+mkdir -p package/cv2 package/numpy
 
 # Build numpy
-pip install --install-option="--prefix=$PWD/build/numpy" numpy
-cp -rf build/numpy/lib/python3.6/site-packages/numpy lambda-package
+pip install --no-cache --install-option="--prefix=$PWD/build/numpy" numpy
+# installしたpipを移動
+cp -rf build/numpy/lib64/python3.7/site-packages/numpy package
 
-# Build OpenCV 3.2
+# Build OpenCV 4.0
 (
-	NUMPY=$PWD/lambda-package/numpy/core/include
+	NUMPY=$PWD/package/numpy/core/include
 	cd build
-	git clone https://github.com/Itseez/opencv.git
+	# git clone https://github.com/Itseez/opencv.git
 	cd opencv
 	git checkout 4.0.0
 	mkdir build
@@ -34,24 +36,32 @@ cp -rf build/numpy/lib/python3.6/site-packages/numpy lambda-package
 		-D BUILD_PERF_TESTS=OFF					\
 		-D BUILD_opencv_highgui=OFF				\
 		-D BUILD_opencv_python3=ON \
+		-D BUILD_opencv_calib3d=OFF \
+		-D BUILD_opencv_cudacodec=OFF \
+		-D BUILD_opencv_dnn=OFF \
+		-D BUILD_opencv_flann=OFF \
+		-D BUILD_opencv_gapi=OFF \
+		-D BUILD_opencv_imgproc=OFF \
+		-D BUILD_opencv_ml=OFF \
+		-D BUILD_opencv_photo=OFF \
+		-D BUILD_opencv_sfm=OFF \
 		-D BUILD_opencv_video=OFF \
 		-D BUILD_opencv_videoio=OFF \
 		-D BUILD_opencv_videostab=OFF \
+		-D BUILD_opencv_viz=OFF \
 		-D PYTHON3_NUMPY_INCLUDE_DIRS="$NUMPY"	\
-		-D PYTHON3_EXECUTABLE=/root/.pyenv/versions/3.6.5/bin/python3.6 \
-		-D PYTHON3_INCLUDE_DIR=/root/.pyenv/versions/3.6.5/include/python3.6m \
-		-D PYTHON3_PACKAGES_PATH=/root/.pyenv/versions/3.6.5/lib/python3.6/site-packages \
+		-D PYTHON3_EXECUTABLE=/usr/bin/python3.7  \
+		-D PYTHON3_INCLUDE_DIR=/usr/include/python3.7m  \
+		-D PYTHON3_PACKAGES_PATH=/usr/lib/python3.7/site-packages \
 		..
 	make -j`cat /proc/cpuinfo | grep MHz | wc -l`
 )
-cp build/opencv/build/lib/python3/cv2.cpython-36m-x86_64-linux-gnu.so lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
-cp -L build/opencv/build/lib/*.so.4.0 lambda-package/cv2
-strip --strip-all lambda-package/cv2/*
-#echo '$ORIGIN'
-#chrpath -r '$ORIGIN' lambda-package/cv2/cv2.cpython-36m-x86_64-linux-gnu.so
-touch lambda-package/cv2/__init__.py
+cp build/opencv/build/lib/python3/cv2.cpython-37m-x86_64-linux-gnu.so package/cv2/cv2.cpython-37m-x86_64-linux-gnu.so
+cp -L build/opencv/build/lib/*.so.4.0 package/cv2
+strip --strip-all package/cv2/*
+echo '$ORIGIN'
+chrpath -r '$ORIGIN' package/cv2/cv2.cpython-37m-x86_64-linux-gnu.so
+touch package/cv2/__init__.py
+echo "import importlib" >> package/cv2/__init__.py
+echo "globals().update(importlib.import_module('cv2.cv2').__dict__)" >> package/cv2/__init__.py
 
-# Copy template function and zip package
-cp template.py lambda-package/lambda_function.py
-cd lambda-package
-zip -r ../lambda-package.zip *
